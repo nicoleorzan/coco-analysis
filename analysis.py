@@ -2,10 +2,10 @@ from numpy.random import random
 import pandas as pd
 import json
 import numpy as np
-from metrics import mex_per_class, unique_messages, clean_messages, mex_per_class_normalized, perplexity_per_symbol, unique_classes_and_superclasses, perplexity_per_message
+from metrics import mex_per_class, unique_messages, clean_messages, mex_per_class_normalized, perplexity_per_symbol, unique_classes_and_superclasses, from_messages_to_categories, purity
 
 vocab = "2"
-_len = "1" # 1 e 6
+_len = "6" # 1 e 6
 
 
 
@@ -57,11 +57,14 @@ mcn = mex_per_class_normalized(mc)
 print("Messages per class normalized mcn[tv]=", mcn['tv'])
 
 pps = perplexity_per_symbol(df, vocab_size)
-ppm = perplexity_per_message(df, um)
+
+catmex = from_messages_to_categories(df)
+#print(catmex)
+#purity(catmex)
+
 
 # METRICS ON THE "CONTEXT" FILE
 
-tot_messages_c = len(df_context)
 um_c = unique_messages(df_context["Message Modified"])
 print("\nUnique messages context=", um_c)
 mc_c = mex_per_class(df_context, um_c)
@@ -70,7 +73,8 @@ mcn_c = mex_per_class_normalized(mc_c)
 print("Messages per class normalized mcn_c[tv]=", mcn_c['tv'])
 
 pps_c = perplexity_per_symbol(df_context, vocab_size)
-ppm_c = perplexity_per_message(df_context, um)
+catmex_c = from_messages_to_categories(df_context)
+#purity(catmex_c)
 
 
 
@@ -80,7 +84,7 @@ ppm_c = perplexity_per_message(df_context, um)
 
 
 col_mex_count = ["mex-"+str(i)+"-c" for i in um.keys()] + ["mex-"+str(i)+"-no-c" for i in um.keys()] # no-c = no context
-col_mex_perpl = ["ppm-"+str(i)+"-c" for i in um.keys()] + ["ppm-"+str(i)+"-no-c" for i in um.keys()] # pps = perplexity per symbol c=context
+col_mex_perpl = ["pps-symbol-"+str(i)+"-c" for i in range(vocab_size)] + ["pps-symbol-"+str(i)+"-no-c" for i in range(vocab_size)] # pps = perplexity per symbol c=context
 
 cols = col_mex_count + col_mex_perpl
 df_analysis = pd.DataFrame(columns = ["true superclass"] + cols)
@@ -89,12 +93,13 @@ for _class in classes:
     df_analysis.loc[_class] = [classes_with_superclasses[_class]] + \
         [mc[_class][mex] for mex in um.keys()] + \
         [mc_c[_class][mex] for mex in um.keys()] + \
-        [ppm[_class][mex] for mex in um.keys()] + \
-        [ppm_c[_class][mex] for mex in um.keys()]
+        [pps[_class][symbol] for symbol in range(vocab_size)] + \
+        [pps_c[_class][symbol] for symbol in range(vocab_size)]
 
 # avg e std of columns
 col_numbers = [col for col in df_analysis.columns]
 col_numbers.remove("true superclass")
+df_analysis.loc["SUM COL"] = ["SUM COL"] + [df_analysis[col].sum() for col in col_numbers]
 df_analysis.loc["MEAN COL"] = ["MEAN COL"] + [df_analysis[col].mean() for col in col_numbers]
 df_analysis.loc["STD COL"] = ["STD COL"] + [df_analysis[col].std() for col in col_numbers]
 

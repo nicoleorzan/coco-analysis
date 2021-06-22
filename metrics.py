@@ -141,31 +141,6 @@ def perplexity_per_symbol(df, vocab_len):
     return pps
 
 
-def perplexity_per_message(df, possible_messages):
-
-    """
-    Count how often a specific MESSAGE is used to speak about a certain class object
-    If vocab_len = 2, messages are 0 and 10
-    A low perplexity shows that the same messages are consistently used to describe the same objects
-    """
-
-    ppm = {}
-    pps_norm = {}
-
-    for row in range(len(df)):
-
-        _class = df["True Class"][row]
-        if _class not in ppm.keys():
-            ppm[_class] = dict.fromkeys([mex for mex in possible_messages], 0)
-
-        mex = df["Message Modified"][row]
-        
-        ppm[_class][mex] += 1
-   
-    return ppm
-
-
-
 # This metric should be computed during the TRAINING!!
 def message_distinctness(df, batch_size):
 
@@ -189,3 +164,33 @@ def message_distinctness(df, batch_size):
             mds.append(mex_dist)
 
     return unique_messages, np.mean(mds)
+
+
+def from_messages_to_categories(df):
+
+    dic = {}
+    for row in range(len(df)):
+        if df["Message Modified"][row] not in dic.keys():
+            dic[df["Message Modified"][row]] = {}
+        if df["True Class"][row] not in dic[df["Message Modified"][row]].keys():
+            dic[df["Message Modified"][row]][df["True Class"][row]] = 1
+        else:         
+            dic[df["Message Modified"][row]][df["True Class"][row]] += 1
+
+    return dic
+
+def purity(catmex):
+
+    """
+    The purity of a clustering solution is the proportion of category labels
+    in the clusters that agree with the respective cluster majority category.
+
+    """
+    for key, _ in catmex.items():
+        print("key=", key)
+        max_val = max(catmex[key].values())
+        max_key = max(catmex[key], key=catmex[key].get)
+        print(max_key, max_val)
+
+
+
