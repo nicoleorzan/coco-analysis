@@ -1,26 +1,33 @@
 import numpy as np
 
 
-def unique_classes(df):
+def unique_classes_and_superclasses(df):
 
     """
     List of the unique classes that needs to be predicted by the receiver ("true class" in the dataset)
-    Needed for perplexity?
     """
     
     uc = []
+    supercl = []
+    classes = {}
 
     for row in range(len(df)):
+        if (df.loc[row, "True SuperClass"] not in supercl):
+            supercl.append(df.loc[row, "True SuperClass"])
+
+        if (df.loc[row, "True Class"] not in classes.keys()):
+            classes[df.loc[row, "True Class"] ] = df.loc[row, "True SuperClass"] 
+
         if (df.loc[row, "True Class"] not in uc):
            uc.append(df.loc[row, "True Class"])
         
-    return uc
+    return uc, supercl, classes
 
 
-def modif_messages(df):
+def clean_messages(df):
 
     """
-    Modify messages taking away ; and takng the part from 0 to mex_length
+    Modify messages taking away ";" and takng the part from 0 to mex_length
     Adds a new column to the dataset. OK
     """
 
@@ -43,8 +50,8 @@ def unique_messages(df):
     um = {}
 
     for row in range(len(df)):
-        mex_len = int( df.loc[row, "Message Length"] )
-        mex = df.loc[row, "Message"].replace(';', '')[0:mex_len]
+        #mex = df.loc[row, "Message Modified"]
+        mex = df[row]
 
         if (mex not in um.keys()):
             um[mex] = 1
@@ -60,7 +67,7 @@ def mex_per_class(df, um):
     Check how often a specific message is used to explain a certain goal class.
     Dictionary: key is the class that should be predicted, and value is the sent message.
 
-    Example: if we have two symbols, 0 and 1, we may have: 
+    Example: if we have two messages, '10' and '0', we may get: 
     mc[tv] = {'10': 12, '0': 20}. OK
 
     """
@@ -77,7 +84,7 @@ def mex_per_class(df, um):
         mpc[ _class ][ mex ] += 1
 
     return mpc
-
+    
 
 def mex_per_class_normalized(mpc):
 
@@ -113,8 +120,9 @@ def perplexity_per_symbol(df, vocab_len):
 
     """
     (Not too much sense with only two symbols, but implemented anyway)
-    Count how often a specific sybol is used to speak about a certain object
+    Count how often a specific sybol is used to speak about a certain class object
     If vocab_len = 2, symbols are 0 and 1
+    A low perplexity shows that the same symbols are consistently used to describe the same objects
     """
     pps = {}
     pps_norm = {}
@@ -131,6 +139,30 @@ def perplexity_per_symbol(df, vocab_len):
             pps[_class][int(mex[i])] += 1
    
     return pps
+
+
+def perplexity_per_message(df, possible_messages):
+
+    """
+    Count how often a specific MESSAGE is used to speak about a certain class object
+    If vocab_len = 2, messages are 0 and 10
+    A low perplexity shows that the same messages are consistently used to describe the same objects
+    """
+
+    ppm = {}
+    pps_norm = {}
+
+    for row in range(len(df)):
+
+        _class = df["True Class"][row]
+        if _class not in ppm.keys():
+            ppm[_class] = dict.fromkeys([mex for mex in possible_messages], 0)
+
+        mex = df["Message Modified"][row]
+        
+        ppm[_class][mex] += 1
+   
+    return ppm
 
 
 
