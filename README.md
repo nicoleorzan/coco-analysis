@@ -4,7 +4,8 @@ Implemented metrics:
 * Average Message Length: Average number of tokens in the messages produced by the Sender
 * Perplexity per Symbol: Counts how often a specific sybol is used to speak about a certain object (If vocab_len = 2, symbols are 0 and 1)
 * ONGOING Purity: the purity of a clustering solution is the proportion of category labels in the clusters that agree with the respective cluster majority category.
-* ONGOING SVD decomposition of symbols. We construct a (sampled) matrix where rows are game image pairs, columns are symbols, and entries represent how often that symbol is used for that pair. Then we decompose the matrix through SVD. This measure is interesting when the used symbols are more than 2, because we can check the presence of redundancy and synonimit.
+* ONGOING SVD decomposition of symbols. We construct a matrix where rows are (true class, distractor) pairs, columns are symbols, and entries represent how often that symbol is used for that pair. Then we decompose the matrix through SVD. This measure is interesting when the used symbols are more than 2, because we can check the presence of redundancy and synonimity.
+
 
 Implemented helper functions:
 * Clean Messages: Modifies the messages taking away the ";" and takng the part from 0 to mex_length. Adds a new column to the dataset.
