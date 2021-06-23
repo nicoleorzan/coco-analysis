@@ -1,12 +1,12 @@
 from numpy.random import random
 import pandas as pd
 import json
-import numpy as np
-from metrics import mex_per_class, unique_messages, clean_messages, mex_per_class_normalized, perplexity_per_symbol, unique_classes_and_superclasses, from_messages_to_categories, purity
+from helper_functions import  mex_per_class, unique_messages, clean_messages, unique_classes_and_superclasses
+from metrics import average_message_length, perplexity_per_symbol, purity, learned_classes, SVD, SVD_messages
+
 
 vocab = "2"
 _len = "6" # 1 e 6
-
 
 
 # ===========================================================
@@ -43,38 +43,53 @@ classes, superclasses, classes_with_superclasses = unique_classes_and_superclass
 #print(classes)
 #print(superclasses)
 #print(classes_with_superclasses)
+
 clean_messages(df)
 clean_messages(df_context)
 
 # METRICS ON THE "NO CONTEXT" FILE
 
-tot_messages = len(df)
-um = unique_messages(df["Message Modified"])
-print("\nUnique messages no context=", um)
-mc = mex_per_class(df, um)
-print("Count of Messages per class. mc[tv]=", mc['tv'])
-mcn = mex_per_class_normalized(mc)
-print("Messages per class normalized mcn[tv]=", mcn['tv'])
+
+print("\nNo Context df")
+print("Accuracy=", df["Accuracy"].mean())
+print("Entropy=", df["Sender Entropy"].mean())
+aml = average_message_length(df)
+print("Average Mesage Length = ", aml)
+um = unique_messages(df)
+print("Unique messages=", um)
+mc, mcn = mex_per_class(df, um)
+print("Count of Messages per class. Example: mc[tv]=", mc['tv'])
+print("Messages per class normalized. Example: mcn[tv]=", mcn['tv'])
 
 pps = perplexity_per_symbol(df, vocab_size)
+print(pps)
+#lc = learned_classes(df)
+#print(lc)
+#SVD(df, vocab_size)
+#SVD_messages(df,list(um.keys()))
 
-catmex = from_messages_to_categories(df)
-#print(catmex)
-#purity(catmex)
+#purity(df)
 
 
 # METRICS ON THE "CONTEXT" FILE
-
-um_c = unique_messages(df_context["Message Modified"])
-print("\nUnique messages context=", um_c)
-mc_c = mex_per_class(df_context, um_c)
-print("Count of Messages per class. mc_c[tv]=", mc_c['tv'])
-mcn_c = mex_per_class_normalized(mc_c)
-print("Messages per class normalized mcn_c[tv]=", mcn_c['tv'])
+print("\nContext df")
+print("Accuracy=", df_context["Accuracy"].mean())
+print("Entropy=", df_context["Sender Entropy"].mean())
+aml_c = average_message_length(df_context)
+print("Average Mesage Length = ", aml_c)
+um_c = unique_messages(df_context)
+print("Unique messages=", um_c)
+mc_c, mcn_c = mex_per_class(df_context, um_c)
+print("Count of Messages per class. Example: mc_c[tv]=", mc_c['tv'])
+print("Messages per class normalized. Example: mcn_c[tv]=", mcn_c['tv'])
 
 pps_c = perplexity_per_symbol(df_context, vocab_size)
-catmex_c = from_messages_to_categories(df_context)
-#purity(catmex_c)
+print(pps_c)
+
+#SVD(df_context, vocab_size)
+#SVD_messages(df_context,list(um_c.keys()))
+
+#purity(df_context)
 
 
 
@@ -103,7 +118,7 @@ df_analysis.loc["SUM COL"] = ["SUM COL"] + [df_analysis[col].sum() for col in co
 df_analysis.loc["MEAN COL"] = ["MEAN COL"] + [df_analysis[col].mean() for col in col_numbers]
 df_analysis.loc["STD COL"] = ["STD COL"] + [df_analysis[col].std() for col in col_numbers]
 
-df_analysis.to_csv("analysis_data_vocab"+vocab+"_len"+_len+".csv")
+df_analysis.to_csv("analysis_data_vocab" + vocab + "_len" + _len + ".csv")
 
 
 
@@ -118,4 +133,4 @@ for superclass in superclasses:
     df_tmp = df_analysis.loc[df_analysis['true superclass'] == superclass]
     df_super.loc[superclass] = [df_tmp[col].mean() for col in cols]
 
-df_super.to_csv("analysis_superclasses_vocab"+vocab+"_len"+_len+".csv")
+df_super.to_csv("analysis_superclasses_vocab" + vocab + "_len" + _len + ".csv")

@@ -1,113 +1,9 @@
 import numpy as np
 
-
-def unique_classes_and_superclasses(df):
-
-    """
-    List of the unique classes that needs to be predicted by the receiver ("true class" in the dataset)
-    """
-    
-    uc = []
-    supercl = []
-    classes = {}
-
-    for row in range(len(df)):
-        if (df.loc[row, "True SuperClass"] not in supercl):
-            supercl.append(df.loc[row, "True SuperClass"])
-
-        if (df.loc[row, "True Class"] not in classes.keys()):
-            classes[df.loc[row, "True Class"] ] = df.loc[row, "True SuperClass"] 
-
-        if (df.loc[row, "True Class"] not in uc):
-           uc.append(df.loc[row, "True Class"])
-        
-    return uc, supercl, classes
-
-
-def clean_messages(df):
-
-    """
-    Modify messages taking away ";" and takng the part from 0 to mex_length
-    Adds a new column to the dataset. OK
-    """
-
-    mex_modif = []
-
-    for row in range(len(df)):
-        m_len = int( df.loc[row, "Message Length"] )
-        mex = df.loc[row, "Message"].replace(';', '')[0:m_len]
-        mex_modif.append(mex)
-        
-    df['Message Modified'] = mex_modif
-
-
-def unique_messages(df):
-
-    """
-    List of the unique messages used by the sender and their counts. OK
-    """
-
-    um = {}
-
-    for row in range(len(df)):
-        #mex = df.loc[row, "Message Modified"]
-        mex = df[row]
-
-        if (mex not in um.keys()):
-            um[mex] = 1
-        else:
-            um[mex] += 1
-        
-    return um
-
-
-def mex_per_class(df, um):
-
-    """
-    Check how often a specific message is used to explain a certain goal class.
-    Dictionary: key is the class that should be predicted, and value is the sent message.
-
-    Example: if we have two messages, '10' and '0', we may get: 
-    mc[tv] = {'10': 12, '0': 20}. OK
-
-    """
-    
-    mpc = {}
-
-    for row in range(len(df)):
-        _class = df["True Class"][row]
-
-        if _class not in mpc.keys():
-            mpc[_class] = {key: 0 for key in um.keys()}
-
-        mex = df.loc[row, "Message Modified"]
-        mpc[ _class ][ mex ] += 1
-
-    return mpc
-    
-
-def mex_per_class_normalized(mpc):
-
-    """
-    Normalizes the above measure to get "probabilities" instead of counts
-
-    Example: mpc_norm[tv] = {'10': 0.375, '0': 0.625}. OK
-
-    """
-    
-    mpc_norm = {}
-
-    for concept in mpc.keys():
-        denom = sum(mpc[concept].values(), 0.0)
-        mpc_norm[concept]  = {k: v / denom for k, v in mpc[concept].items()}
-
-    return mpc_norm
-
-
 def average_message_length(df):
 
     """
-    Average number of tokens in the messages produced by the Sender. OK
+    Average number of tokens in the messages produced by the Sender.
     """
 
     avg_len = sum(len(df.loc[row, "Message Modified"]) for row in range(len(df)))
@@ -120,10 +16,11 @@ def perplexity_per_symbol(df, vocab_len):
 
     """
     (Not too much sense with only two symbols, but implemented anyway)
-    Count how often a specific sybol is used to speak about a certain class object
+    Count how often a specific symbol is used to speak about a certain class object
     If vocab_len = 2, symbols are 0 and 1
     A low perplexity shows that the same symbols are consistently used to describe the same objects
     """
+
     pps = {}
     pps_norm = {}
 
@@ -168,29 +65,117 @@ def message_distinctness(df, batch_size):
 
 def from_messages_to_categories(df):
 
-    dic = {}
+    """
+    Needed for PURITY metric
+    Computes the number of times that each category is the true class 
+    each time a specific message is sent.
+    Example: fmtc['1110'] = {'tv': 6, 'person': 125, 'bottle': 16, 'tie': 6, ...}
+    """
+
+    fmtc = {}
     for row in range(len(df)):
-        if df["Message Modified"][row] not in dic.keys():
-            dic[df["Message Modified"][row]] = {}
-        if df["True Class"][row] not in dic[df["Message Modified"][row]].keys():
-            dic[df["Message Modified"][row]][df["True Class"][row]] = 1
+        if df["Message Modified"][row] not in fmtc.keys():
+            fmtc[df["Message Modified"][row]] = {}
+        if df["True Class"][row] not in fmtc[df["Message Modified"][row]].keys():
+            fmtc[df["Message Modified"][row]][df["True Class"][row]] = 1
         else:         
-            dic[df["Message Modified"][row]][df["True Class"][row]] += 1
+            fmtc[df["Message Modified"][row]][df["True Class"][row]] += 1
 
-    return dic
+    return fmtc
 
-def purity(catmex):
+
+
+def purity(df):
 
     """
     The purity of a clustering solution is the proportion of category labels
     in the clusters that agree with the respective cluster majority category.
 
     """
+    catmex = from_messages_to_categories(df)
+
     for key, _ in catmex.items():
-        print("key=", key)
+        #print("key=", key)
         max_val = max(catmex[key].values())
         max_key = max(catmex[key], key=catmex[key].get)
-        print(max_key, max_val)
+        #print(max_key, max_val)
 
 
 
+def learned_classes(df):
+
+    """
+    Dict containing the number of times each true class has been corretly predicted by the receiver
+    Example: correct_pred_perc['tv'] = 0.83 (8 times over 10 the tv class has been correctly predicted)
+    """
+
+    correct_pred_perc = {}; count = {}
+    for row in range(len(df)):
+        _class = df["True Class"][row]
+        if (_class not in count.keys() ):
+            count[_class] = 1
+        else: 
+            count[_class] += 1
+        
+        if (_class not in correct_pred_perc.keys() ):
+            correct_pred_perc[_class] = 0.
+
+        if (df["Is correct"][row] == True): 
+            correct_pred_perc [_class] += 1.
+
+    for _class in correct_pred_perc.keys():
+        correct_pred_perc[_class] = correct_pred_perc[_class]/count[_class]
+    
+    return correct_pred_perc
+
+
+
+def SVD(df, vocab_len):
+
+    """
+
+    """
+
+    couples_dict = {}
+    symbols = [str(i) for i in range(vocab_len)]
+    for row in range(len(df)):
+
+        couple = (df["True Class"][row], df["Distractor class"][row])
+        if couple not in couples_dict.keys():
+            couples_dict[couple] = dict.fromkeys([str(i) for i in range(vocab_len)], 0)
+        
+        for symbol in symbols:
+            couples_dict[couple][symbol] += df["Message Modified"][row].count(symbol)
+        
+    mat = np.array([list(val.values()) for val in couples_dict.values()])
+    print("mat=",mat)
+
+    u, s, vh = np.linalg.svd(mat, full_matrices=True)
+    print(u.shape, s.shape, vh.shape)
+    print(s)
+
+
+def SVD_messages(df, messages):
+
+    """
+
+    """
+
+    couples_dict = {}
+    for row in range(len(df)):
+
+        couple = (df["True Class"][row], df["Distractor class"][row])
+        if couple not in couples_dict.keys():
+            couples_dict[couple] = dict.fromkeys([mex for mex in messages], 0)
+        
+        for mex in messages:
+            couples_dict[couple][mex] += df["Message Modified"][row].count(mex)
+        
+    #print("Couples dict=",couples_dict)
+
+    mat = np.array([list(val.values()) for val in couples_dict.values()])
+    print("mat=",mat)
+
+    u, s, vh = np.linalg.svd(mat, full_matrices=True)
+    print(u.shape, s.shape, vh.shape)
+    print(s)
