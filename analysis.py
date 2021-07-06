@@ -1,12 +1,12 @@
 from numpy.random import random
 import pandas as pd
 import json
-from helper_functions import  mex_per_class, unique_messages, clean_messages, unique_classes_and_superclasses
-from metrics import average_message_length, perplexity_per_symbol, purity, learned_classes, SVD, SVD_messages
+from helper_functions import  mex_per_class, unique_messages, clean_messages, unique_classes_and_superclasses, unique_images
+from metrics import average_message_length, perplexity_per_symbol, purity, learned_classes, SVD, SVD_messages, message_distinctness
+import sys
 
-
-vocab = "2"
-_len = "6" # 1 e 6
+vocab = "10"
+_len = "2" # 1 e 6
 
 
 # ===========================================================
@@ -49,6 +49,7 @@ clean_messages(df_context)
 
 # METRICS ON THE "NO CONTEXT" FILE
 
+print(message_distinctness(df))
 
 print("\nNo Context df")
 print("Accuracy=", df["Accuracy"].mean())

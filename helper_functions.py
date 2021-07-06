@@ -16,6 +16,25 @@ def clean_messages(df):
     df['Message Modified'] = mex_modif
 
 
+def unique_images(df):
+    """
+    Returns a set of all distinct image
+    ids from data frame
+    (useful for message distinctness)
+
+    Parameters
+    ----------
+    df : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    ui = set(df["Image id"])
+    return ui
+
 def unique_messages(df):
 
     """

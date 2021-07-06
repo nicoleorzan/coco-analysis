@@ -1,4 +1,5 @@
 import numpy as np
+from helper_functions import unique_images, unique_messages
 
 def average_message_length(df):
 
@@ -62,6 +63,25 @@ def message_distinctness(df, batch_size):
 
     return unique_messages, np.mean(mds)
 
+def message_distinctness(df):
+    """
+    Metric for determining how much of 
+    an image is captured in a message
+    """
+    
+    # count of unique messages per batch
+    # divided by the batch size
+    
+    print(f"{len(unique_messages(df))}")
+    print(f"{len(df)}")
+    
+    md = len(unique_messages(df)) / len(df)
+    
+    # can also use distinct images in set as 
+    # reference point
+    comparison = md - len(unique_images(df))
+    
+    return md, comparison
 
 def from_messages_to_categories(df):
 
