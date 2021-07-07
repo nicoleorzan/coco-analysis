@@ -6,8 +6,8 @@ from helper_functions import mean_mex_per_class, mex_per_class, unique_messages,
 from metrics import  perplexity_per_symbol, message_distinctness, SVD
 
 
-vocab = "5" # 2, 5, 10, 100
-_len = "10" # for vocab 2, len 1 and 6. For vocab 5, len 10. For vocab 10 len 2 and 6. For vocab 100, len 2 and 6
+vocab = "100" # 2, 5, 10, 100
+_len = "2" # for vocab 2, len 1 and 6. For vocab 5, len 10. For vocab 10 len 2 and 6. For vocab 100, len 2 and 6
 save_path = "df_analysis/"
 
 
@@ -87,7 +87,7 @@ print(pps_c)
 # =========================================
 # ======== SAVE METRICS IN DATASET ========
 
-print("\nSAVE METRICS IN DATASET")
+print("\nSAVE CLASSES METRICS IN DATASET")
 
 
 col_mex_count = ["mex-"+str(i)+"-c" for i in um.keys()] + ["mex-"+str(i)+"-no-c" for i in um_c.keys()] # no-c = no context
@@ -110,14 +110,14 @@ df_analysis.loc["SUM COL"] = ["SUM COL"] + [df_analysis[col].sum() for col in co
 df_analysis.loc["MEAN COL"] = ["MEAN COL"] + [df_analysis[col].mean() for col in col_numbers]
 df_analysis.loc["STD COL"] = ["STD COL"] + [df_analysis[col].std() for col in col_numbers]
 
-df_analysis.to_csv(save_path + "Vocab" + vocab + "/analysis_data_vocab" + vocab + "_len" + _len + ".csv")
+df_analysis.to_csv(save_path + "Vocab" + vocab + "/analysis_classes_vocab" + vocab + "_len" + _len + ".csv")
 
 
 # ========================================
 # ======== SUPERCLASSES ANALYSIS =========
 
 
-print("\nSUPERCLASSES ANALYSIS")
+print("\nSAVE SUPERCLASSES METRICS IN DATASET")
 
 df_super = pd.DataFrame(columns = cols)
 
@@ -133,7 +133,7 @@ df_super.to_csv(save_path + "Vocab" + vocab + "/analysis_superclasses_vocab" + v
 # ===== SINGULAR VALUES DECOMPOSITION =====
 
 
-print("SVD")
+print("\nSVD ANALYSIS")
 u, s, vh = SVD(df, vocab_size)
 u_c, s_c, vh_c = SVD(df_context, vocab_size)
 
