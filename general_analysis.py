@@ -44,6 +44,6 @@ for vocab, max_lens in vocab_maxlen.items():
         i += 2
 
 
-df_general.to_csv("analysis_general.csv")
+df_general.to_csv("df_analysis/analysis_general.csv")
         
 

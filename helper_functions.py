@@ -114,3 +114,17 @@ def mex_per_class(df, um):
         mpc_norm[concept]  = {k: v / denom for k, v in mpc[concept].items()}
 
     return mpc, mpc_norm
+
+
+def mean_mex_per_class(mpc):
+
+    """ 
+    of messages per class / # classes
+    """
+
+    avg_mex = 0
+    for _class in mpc.keys():
+        avg_mex += len(mpc[_class].keys())
+    avg_mex = avg_mex/len(mpc.keys())
+    
+    return avg_mex
