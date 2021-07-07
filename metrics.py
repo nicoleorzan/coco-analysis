@@ -149,11 +149,10 @@ def learned_classes(df):
     return correct_pred_perc
 
 
-
 def SVD(df, vocab_len):
 
     """
-
+    Singular value decomposition for each couple of (true class, distractor class)
     """
 
     couples_dict = {}
@@ -168,11 +167,8 @@ def SVD(df, vocab_len):
             couples_dict[couple][symbol] += df["Message Modified"][row].count(symbol)
         
     mat = np.array([list(val.values()) for val in couples_dict.values()])
-    print("mat=",mat)
 
-    u, s, vh = np.linalg.svd(mat, full_matrices=True)
-    print(u.shape, s.shape, vh.shape)
-    print(s)
+    return np.linalg.svd(mat, full_matrices=True)
 
 
 def SVD_messages(df, messages):
