@@ -1,8 +1,9 @@
-from numpy.random import random
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import json
 from helper_functions import mean_mex_per_class, mex_per_class, unique_messages, clean_messages, unique_classes_and_superclasses
-from metrics import  perplexity_per_symbol, purity, learned_classes, message_distinctness
+from metrics import  perplexity_per_symbol, message_distinctness, SVD
 
 
 vocab = "5" # 2, 5, 10, 100
@@ -115,6 +116,7 @@ df_analysis.to_csv(save_path + "Vocab" + vocab + "/analysis_data_vocab" + vocab 
 # ========================================
 # ======== SUPERCLASSES ANALYSIS =========
 
+
 print("\nSUPERCLASSES ANALYSIS")
 
 df_super = pd.DataFrame(columns = cols)
@@ -125,3 +127,22 @@ for superclass in superclasses:
 
 df_super.to_csv(save_path + "Vocab" + vocab + "/analysis_superclasses_vocab" + vocab + "_len" + _len + ".csv")
 
+
+
+# =========================================
+# ===== SINGULAR VALUES DECOMPOSITION =====
+
+
+print("SVD")
+u, s, vh = SVD(df, vocab_size)
+u_c, s_c, vh_c = SVD(df_context, vocab_size)
+
+print("No context =", s)
+print("Context    =", s_c)
+
+plt.plot(np.linspace(0, len(s), len(s)), s/(np.sum(s)), label="no context", marker='o', markersize=4)
+plt.plot(np.linspace(0, len(s_c), len(s_c)), s_c/(np.sum(s_c)), label="context", marker='o', markersize=4)
+plt.title("Singular Value Decomposition for vocab "+vocab+", max_len "+_len)
+plt.legend()
+plt.grid()
+plt.savefig("plots/SVD_vocab_"+vocab+"_max_len_"+_len+".png", bbox_inches="tight")
